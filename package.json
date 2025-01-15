@@ -1,0 +1,37 @@
+{
+  "name": "@orsonkit/result",
+  "type": "module",
+  "version": "2.0.0",
+  "description": "functional processing function return results",
+  "author": "openorson <openorson@hotmail.com> (https://github.com/openorson/)",
+  "license": "MIT",
+  "homepage": "https://github.com/openorson/result",
+  "keywords": [
+    "result"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "@orsonkit/eslint": "^2.1.2",
+    "@orsonkit/tsconfig": "^1.1.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
