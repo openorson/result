@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@orsonkit/result)](https://npmjs.com/package/@orsonkit/result)
 
-Functional processing function return results, eliminating try-catch in the code. This library is inspired by rust result enum, but not exactly the same as rust result enum. I improved it to make it more suitable for JavasSript/TypeScript environment.
+Functional processing function return results, eliminating try-catch in the code. This library is inspired by rust result, but not exactly the same as rust result. I improved it to make it more suitable for JavasSript/TypeScript environment.
 
 ## Install
 
@@ -15,8 +15,6 @@ npm i @orsonkit/result
 ### Ok
 
 `Ok` is a factory function that returns an `OkResult` instance, indicating a ok result.
-
-Examples:
 
 ```typescript
 import { Ok } from '@orsonkit/result'
@@ -43,8 +41,6 @@ function Ok<Value>(value: Value): OkResult<Value>
 ### Err
 
 `Err` is a factory function that returns an `ErrResult` instance, indicating an error result.
-
-Examples:
 
 ```typescript
 import { Err, Ok } from '@orsonkit/result'
@@ -89,7 +85,15 @@ function Err<Code extends string | number | null | undefined>(code: Code, messag
 
 #### `isOk`
 
-* `Result` is `OkResult`?
+`Result` is `OkResult`?
+
+Overloads:
+
+```typescript
+function isOk(): this is OkResult
+```
+
+Examples:
 
 ```typescript
 import { Ok } from '@orsonkit/result'
@@ -99,15 +103,17 @@ result.isOk() // true
 result.isErr() // false
 ```
 
+#### `isOk`
+
+`Result` is `ErrResult`?
+
 Overloads:
 
 ```typescript
-function isOk(): this is OkResult
+function isErr(): this is ErrResult
 ```
 
-#### `isOk`
-
-* `Result` is `ErrResult`?
+Examples:
 
 ```typescript
 import { Err } from '@orsonkit/result'
@@ -115,12 +121,6 @@ import { Err } from '@orsonkit/result'
 const result = Err()
 result.isOk() // false
 result.isErr() // true
-```
-
-Overloads:
-
-```typescript
-function isErr(): this is ErrResult
 ```
 
 #### `expect`
@@ -247,10 +247,10 @@ plus('1', Number.NaN).fix(Ok(true)) // OkResult<true>
 
 Parameters:
 
-* `fn` : fn
-* `code` : code
-* `message` : message
-* `args` : args
+* `fn` : function
+* `code` : `ErrResult` code
+* `message` : `ErrResult` message
+* `args` : function args
 
 Overloads:
 
@@ -263,19 +263,38 @@ function resultify(code: string | number | null | undefined, message: string, fn
 function resultify(code: string | number | null | undefined, message: string, fn: (...args: Args) => Promise<any>, ...args: Args)
 ```
 
+Examples:
+
+```typescript
+import { resultify } from '@orsonkit/result'
+
+function plus(a: unknown, b: unknown) {
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new TypeError('type error')
+  }
+  return a + b
+}
+
+resultify(plus, 1, 2) // OkResult(3)
+resultify(plus, 1, '2') // ErrResult(null)
+
+resultify('TypeError', plus, 1, '2') // ErrResult('TypeError')
+resultify('TypeError', 'cannot plus', plus, 1, '2') // ErrResult('TypeError')
+```
+
 ### callbackResultify
 
 * Convert the return value of the callback function to the result.
 
 Parameters:
 
-* `fn` : fn
+* `fn` : callback function
 * `options` :
-  * `code` : code
-  * `message`: message
-  * `resolve`: resolve
-  * `reject`: reject
-* `args` : args
+  * `code` : `ErrResult` code
+  * `message`: `ErrResult` message
+  * `resolve`: property name of the success callback function, default value is "success"
+  * `reject`: property name of the fail callback function, default value is "fail"
+* `args` : callback function args
 
 Overloads:
 
@@ -292,6 +311,30 @@ function callbackResultify(
   options: Omit<Options, Resolve | Reject>,
   ...args: Args
 )
+```
+
+Examples:
+
+```typescript
+import { callbackResultify } from '@orsonkit/result'
+
+interface RequestOptions {
+  success: (response: Response) => void
+  fail: (error: Error) => void
+}
+
+function request(options: RequestOptions) {
+  // do request...
+}
+
+const result = await callbackResultify(request) // OkResult | ErrResult
+
+if (result.isOk()) {
+  result // OkResult([response: Response])
+}
+else {
+  result // ErrResult(code: null, message: default message, cause: Error)
+}
 ```
 
 ## License
