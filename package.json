@@ -1,7 +1,7 @@
 {
   "name": "@orsonkit/result",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "functional processing function return results",
   "author": "openorson <openorson@hotmail.com> (https://github.com/openorson/)",
   "license": "MIT",
