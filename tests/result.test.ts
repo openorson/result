@@ -30,7 +30,7 @@ it('result isErr', () => {
 it('result expect', () => {
   expect(Ok().expect()).toBeNull()
   expect(Ok(1).expect()).toBe(1)
-  expect(() => Err().expect()).toThrow('error occurred with code \'null\'')
+  expect(() => Err().expect()).toThrow('Error occurred with code \'null\'.')
   expect(() => Err().expect('message')).toThrow('message')
 })
 
@@ -41,7 +41,7 @@ it('result unwrap', async () => {
   expect(Err().unwrap(() => 1)).toBe(1)
   await expect(Err().unwrap(Promise.resolve(1))).resolves.toBe(1)
   await expect(Err().unwrap(async () => 1)).resolves.toBe(1)
-  expect(() => Err().unwrap()).toThrow('error occurred with code \'null\'')
+  expect(() => Err().unwrap()).toThrow('Error occurred with code \'null\'.')
 })
 
 it('result fix', async () => {

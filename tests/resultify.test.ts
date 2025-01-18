@@ -3,8 +3,8 @@ import { callbackResultify, resultify } from '../src'
 
 it('resultify', () => {
   expect(resultify(plus, 1, 2).unwrap()).toBe(3)
-  expect(() => resultify(plus, 1, '2').unwrap()).toThrow(`error occurred while calling 'plus' function`)
-  expect(() => resultify('code', plus, 1, '2').unwrap()).toThrow(`error occurred while calling 'plus' function`)
+  expect(() => resultify(plus, 1, '2').unwrap()).toThrow('invalid arguments')
+  expect(() => resultify('code', plus, 1, '2').unwrap()).toThrow('invalid arguments')
 })
 
 it('callbackResultify', async () => {
