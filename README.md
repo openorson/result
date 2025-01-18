@@ -23,13 +23,13 @@ function plus(a: number, b: number) {
   return Ok(a + b)
 }
 
-const value = plus(1, 2).unwrap()
-console.log(value) // 3
+const value = plus(1, 1).unwrap()
+console.log(value) // 2
 ```
 
 Parameters:
 
-* `value` : `Result` data value, default value is `null`.
+* `value` : `Result` value, default value is `null`.
 
 Overloads:
 
@@ -45,20 +45,23 @@ function Ok<Value>(value: Value): OkResult<Value>
 ```typescript
 import { Err, Ok } from '@orsonkit/result'
 
-function plus(a: unknown, b: unknown) {
-  if (typeof a !== 'number' || typeof b !== 'number') {
-    return Err('TypeError')
+async function request(url: string) {
+  const response = await fetch(url)
+
+  if (response.ok) {
+    return Ok(response)
   }
-  return Ok(a + b)
+
+  return Err(response.status)
 }
 
 try {
-  const value = plus(1, '2').expect('cannot plus')
+  const response = (await request('https://example.com/api')).expect('request failed')
 }
 catch (error) {
-  // ResultError: cannot plus
+  // ResultError: request failed
   // at...
-  // code: TypeError
+  // code: response.status
   console.error(error)
 }
 ```
@@ -67,14 +70,13 @@ Parameters:
 
 * `code` : Error code, default value is `null`.
 * `message` : Error message. The default value is a message with code description.
-* `cause` : Error reason, default value is `undefined`.
+* `cause` : Error cause, default value is `undefined`.
 
 Overloads:
 
 ```typescript
 function Err(): ErrResult<null>
 function Err<Code extends string | number | null | undefined>(code: Code): ErrResult<Code>
-function Err<Code extends string | number | null | undefined>(code: Code, error: Error): ErrResult<Code>
 function Err<Code extends string | number | null | undefined>(code: Code, message: string): ErrResult<Code>
 function Err<Code extends string | number | null | undefined>(code: Code, message: string, cause: unknown): ErrResult<Code>
 ```
@@ -96,14 +98,13 @@ function isOk(): this is OkResult
 Examples:
 
 ```typescript
-import { Ok } from '@orsonkit/result'
+import { Err, Ok } from '@orsonkit/result'
 
-const result = Ok()
-result.isOk() // true
-result.isErr() // false
+Ok().isOk() // true
+Err().isOk() // false
 ```
 
-#### `isOk`
+#### `isErr`
 
 `Result` is `ErrResult`?
 
@@ -116,11 +117,10 @@ function isErr(): this is ErrResult
 Examples:
 
 ```typescript
-import { Err } from '@orsonkit/result'
+import { Err, Ok } from '@orsonkit/result'
 
-const result = Err()
-result.isOk() // false
-result.isErr() // true
+Err().isErr() // true
+Ok().isErr() // false
 ```
 
 #### `expect`
@@ -130,7 +130,7 @@ result.isErr() // true
 
 Parameters:
 
-* `message` : error message.
+* `message` : Error message.
 
 Overloads:
 
@@ -160,16 +160,14 @@ Err().expect('Oops!') // throw error with specified message
 
 Parameters:
 
-* `defaultValue` : default value.
+* `defaultValue` : Default value.
 
 Overloads:
 
 ```typescript
 function unwrap()
 function unwrap(defaultValue: any)
-function unwrap(defaultValue: Promise<any>)
 function unwrap(defaultValue: () => any)
-function unwrap(defaultValue: () => Promise<any>)
 ```
 
 Examples:
@@ -188,6 +186,56 @@ Err().unwrap(() => 1) // 1
 Err().unwrap(async () => 1) // Promise<1>
 ```
 
+#### `okTo`
+
+* Convert `OkResult` to new `OkResult`.
+
+Parameters:
+
+* `value` : New value.
+
+Overloads:
+
+```typescript
+function okTo()
+function okTo(value: Value)
+```
+
+Examples:
+
+```typescript
+import { Err, Ok } from '@orsonkit/result'
+
+const ok = Ok(new Date()) // OkResult(Date)
+const newOk = ok.okTo(ok.value.getTime()) // OkResult(number)
+```
+
+#### `errTo`
+
+* Convert `ErrResult` to new `ErrResult`.
+
+Parameters:
+
+* `code` : New error code.
+* `message` : New error message.
+
+Overloads:
+
+```typescript
+function errTo()
+function errTo(code: Code)
+function errTo(code: Code, message: string)
+```
+
+Examples:
+
+```typescript
+import { Err, Ok } from '@orsonkit/result'
+
+const err = Err('UnknownError', 'error message') // ErrResult(code: 'UnknownError', message: 'error message')
+err.errTo('TypeError', 'type error message') // ErrResult(code: 'TypeError', 'type error message', cause: err)
+```
+
 #### `fix`
 
 * If this is an `OKResult`, this value is returned.
@@ -197,20 +245,20 @@ Err().unwrap(async () => 1) // Promise<1>
 
 Parameters:
 
-* `code` : the error code to be fixed.
-* `fixer` : error fixer.
+* `code` : Error code to be fixed.
+* `fixer` : Error fixer.
 
 Overloads:
 
 ```typescript
-function repair(code: string | number | null | undefined, fixer: Result)
-function repair(code: string | number | null | undefined, fixer: Promise<Result>)
-function repair(code: string | number | null | undefined, fixer: () => Result)
-function repair(code: string | number | null | undefined, fixer: () => Promise<Result>)
-function repair(fixer: Result)
-function repair(fixer: Promise<Result>)
-function repair(fixer: () => Result)
-function repair(fixer: () => Promise<Result>)
+function fix(fixer: Result)
+function fix(fixer: Promise<Result>)
+function fix(fixer: () => Result)
+function fix(fixer: () => Promise<Result>)
+function fix(code: string | number | null | undefined, fixer: Result)
+function fix(code: string | number | null | undefined, fixer: Promise<Result>)
+function fix(code: string | number | null | undefined, fixer: () => Result)
+function fix(code: string | number | null | undefined, fixer: () => Promise<Result>)
 ```
 
 Examples:
@@ -218,27 +266,24 @@ Examples:
 ```typescript
 import { Err, Ok } from '@orsonkit/result'
 
-function plus(a: unknown, b: unknown) {
-  if (typeof a !== 'number' || typeof b !== 'number') {
-    return Err('TypeError')
+function getAppElement() {
+  const element = document.querySelector('#app')
+
+  if (element) {
+    return Ok(element)
   }
-  if (Number.isNaN(a) || Number.isNaN(b)) {
-    return Err('ValueError')
-  }
-  return Ok(a + b)
+
+  return Err('AppElementNotFound')
 }
 
-plus(1, 2).fix('TypeError', Ok(true)).unwrap() // 3
-plus(1, '2').fix('TypeError', Ok(true)).unwrap() // true
-plus(1, '2').fix('ValueError', Ok(true)).unwrap() // throw error with code 'TypeError'
-
-plus(1, '2').fix('TypeError', Ok(true)) // OkResult<true>
-plus(1, '2').fix('TypeError', Promise.resolve(Ok(true))) // Promise<OkResult<true>>
-plus(1, '2').fix('TypeError', () => Ok(true)) // OkResult<true>
-plus(1, '2').fix('TypeError', async () => Ok(true)) // Promise<OkResult<true>>
-
-plus('1', Number.NaN).fix('TypeError', Ok(true)).fix('ValueError', Ok(true)) // OkResult<true>
-plus('1', Number.NaN).fix(Ok(true)) // OkResult<true>
+const result = getAppElement()
+const okResult = result.fix('AppElementNotFound', () => {
+  const element = document.createElement('div')
+  element.id = 'app'
+  document.body.appendChild(element)
+  return Ok(element)
+})
+const app = okResult.value // app element
 ```
 
 ### resultify
@@ -247,10 +292,10 @@ plus('1', Number.NaN).fix(Ok(true)) // OkResult<true>
 
 Parameters:
 
-* `fn` : function
-* `code` : `ErrResult` code
-* `message` : `ErrResult` message
-* `args` : function args
+* `fn` : Function.
+* `code` : `ErrResult` code.
+* `message` : `ErrResult` message.
+* `args` : Function args.
 
 Overloads:
 
@@ -268,18 +313,24 @@ Examples:
 ```typescript
 import { resultify } from '@orsonkit/result'
 
-function plus(a: unknown, b: unknown) {
-  if (typeof a !== 'number' || typeof b !== 'number') {
-    throw new TypeError('type error')
+async function request(url: string) {
+  const response = await fetch(url)
+
+  if (response.ok) {
+    return response
   }
-  return a + b
+
+  throw new Error('request failed')
 }
 
-resultify(plus, 1, 2) // OkResult(3)
-resultify(plus, 1, '2') // ErrResult(null)
+const result = await resultify(request, 'https://example.com/api')
 
-resultify('TypeError', plus, 1, '2') // ErrResult('TypeError')
-resultify('TypeError', 'cannot plus', plus, 1, '2') // ErrResult('TypeError')
+if (result.isOk()) {
+  result // OkResult(response)
+}
+else {
+  result // ErrResult(code: null, message: 'request failed', cause: Error)
+}
 ```
 
 ### callbackResultify
@@ -288,13 +339,13 @@ resultify('TypeError', 'cannot plus', plus, 1, '2') // ErrResult('TypeError')
 
 Parameters:
 
-* `fn` : callback function
+* `fn` : Callback function.
 * `options` :
-  * `code` : `ErrResult` code
-  * `message`: `ErrResult` message
-  * `resolve`: property name of the success callback function, default value is "success"
-  * `reject`: property name of the fail callback function, default value is "fail"
-* `args` : callback function args
+  * `code` : `ErrResult` code.
+  * `message`: `ErrResult` message.
+  * `resolve`: Property name of the success callback function, default value is "success".
+  * `reject`: Property name of the fail callback function, default value is "fail".
+* `args` : Callback function args.
 
 Overloads:
 
@@ -318,22 +369,26 @@ Examples:
 ```typescript
 import { callbackResultify } from '@orsonkit/result'
 
-interface RequestOptions {
+function request(options: {
+  url: string
   success: (response: Response) => void
   fail: (error: Error) => void
+}) {
+  fetch(options.url).then(options.success).catch(options.fail)
 }
 
-function request(options: RequestOptions) {
-  // do request...
-}
-
-const result = await callbackResultify(request) // OkResult | ErrResult
+const result = await callbackResultify({
+  code: 'RequestFailedError',
+  message: 'request failed',
+  resolve: 'success',
+  reject: 'fail',
+}, request, { url: 'https://example.com/api' })
 
 if (result.isOk()) {
   result // OkResult([response: Response])
 }
 else {
-  result // ErrResult(code: null, message: default message, cause: Error)
+  result // ErrResult(code: 'RequestFailedError', message: 'request failed', cause: Error)
 }
 ```
 
