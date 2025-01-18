@@ -31,7 +31,7 @@ export class Result {
     }
 
     else {
-      throw new Error('\'this\' is not a valid result instance')
+      throw new Error('Failed to execute \'expect\', \'this\' is not a valid result instance.')
     }
   }
 
@@ -58,18 +58,18 @@ export class Result {
     }
 
     else {
-      throw new Error('\'this\' is not a valid result instance')
+      throw new Error('Failed to execute \'unwrap\', \'this\' is not a valid result instance.')
     }
   }
 
-  fix<This, Fixer extends (result: This) => Promise<Result>>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | ReturnType<Fixer>
-  fix<This, Fixer extends (result: This) => Result>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | ReturnType<Fixer>
-  fix<This, Fixer extends Promise<Result>>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | Fixer
-  fix<This, Fixer extends Result>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | Fixer
   fix<This, Code extends ErrResultCode<This>, Fixer extends (result: Extract<This, ErrResult<Code>>) => Promise<Result>>(this: This, code: Code, fixer: Fixer): Exclude<This, ErrResult<Code>> | ReturnType<Fixer>
   fix<This, Code extends ErrResultCode<This>, Fixer extends (result: Extract<This, ErrResult<Code>>) => Result>(this: This, code: Code, fixer: Fixer): Exclude<This, ErrResult<Code>> | ReturnType<Fixer>
   fix<This, Code extends ErrResultCode<This>, Fixer extends Promise<Result>>(this: This, code: Code, fixer: Fixer): Exclude<This, ErrResult<Code>> | Fixer
   fix<This, Code extends ErrResultCode<This>, Fixer extends Result>(this: This, code: Code, fixer: Fixer): Exclude<This, ErrResult<Code>> | Fixer
+  fix<This, Fixer extends (result: This) => Promise<Result>>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | ReturnType<Fixer>
+  fix<This, Fixer extends (result: This) => Result>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | ReturnType<Fixer>
+  fix<This, Fixer extends Promise<Result>>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | Fixer
+  fix<This, Fixer extends Result>(this: This, fixer: Fixer): Exclude<This, ErrResult<any>> | Fixer
   fix(...args: any[]): any {
     if (this.isOk()) {
       return this
@@ -102,7 +102,7 @@ export class Result {
     }
 
     else {
-      throw new Error('\'this\' is not a valid result instance')
+      throw new Error('Failed to execute \'fix\', \'this\' is not a valid result instance.')
     }
   }
 
@@ -124,7 +124,7 @@ export class Result {
     }
 
     else {
-      throw new Error('\'this\' is not a valid result instance')
+      throw new Error('Failed to execute \'okTo\', \'this\' is not a valid result instance.')
     }
   }
 
@@ -157,7 +157,7 @@ export class Result {
     }
 
     else {
-      throw new Error('\'this\' is not a valid result instance')
+      throw new Error('Failed to execute \'errTo\', \'this\' is not a valid result instance.')
     }
   }
 }
@@ -212,12 +212,12 @@ export class ErrResult<Code extends string | number | null | undefined = null> e
 
     if (args.length === 0) {
       this.code = null as Code
-      this.error = new ResultError(this.code, `error occurred with code '${this.code}'`)
+      this.error = new ResultError(this.code, `Error occurred with code '${this.code}'.`)
     }
 
     else if (args.length === 1) {
       this.code = args[0]
-      this.error = new ResultError(this.code, `error occurred with code '${this.code}'`)
+      this.error = new ResultError(this.code, `Error occurred with code '${this.code}'.`)
     }
 
     else if (args.length === 2) {

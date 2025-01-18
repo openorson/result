@@ -10,7 +10,7 @@ export function resultify(...args: any[]): any {
   const fnIndex = typeof args[0] === 'function' ? 0 : typeof args[1] === 'function' ? 1 : typeof args[2] === 'function' ? 2 : -1
 
   if (fnIndex === -1) {
-    throw new TypeError('invalid arguments')
+    throw new TypeError('Failed to execute \'resultify\', provided function is not found.')
   }
 
   const fn = args[fnIndex]
@@ -22,7 +22,13 @@ export function resultify(...args: any[]): any {
     const value = fn(...params)
 
     if (value instanceof Promise) {
-      return value.then(value => Ok(value)).catch(error => Err(code, message || `error occurred while calling '${fn.name || 'anonymous'}' function`, error))
+      return value
+        .then(value => Ok(value))
+        .catch(error => Err(
+          code,
+          message || (error instanceof Error ? error.message : `Error occurred while calling '${fn.name || 'anonymous'}' function.`),
+          error,
+        ))
     }
 
     else {
@@ -30,7 +36,11 @@ export function resultify(...args: any[]): any {
     }
   }
   catch (error) {
-    return Err(code, message || `error occurred while calling '${fn.name || 'anonymous'}' function`, error)
+    return Err(
+      code,
+      message || (error instanceof Error ? error.message : `Error occurred while calling '${fn.name || 'anonymous'}' function.`),
+      error,
+    )
   }
 }
 
@@ -50,14 +60,14 @@ export function callbackResultify(...args: any[]): any {
   const fnIndex = typeof args[0] === 'function' ? 0 : typeof args[1] === 'function' ? 1 : -1
 
   if (fnIndex === -1) {
-    throw new TypeError('invalid arguments')
+    throw new TypeError('Failed to execute \'callbackResultify\', provided function is not found.')
   }
 
   const fn = args[fnIndex]
   const options = fnIndex === 1 ? args[0] : {}
 
   if (typeof options !== 'object') {
-    throw new TypeError('invalid arguments')
+    throw new TypeError('Failed to execute \'callbackResultify\', provided function first argument is not an object.')
   }
 
   const code = options.code ?? null
@@ -71,11 +81,19 @@ export function callbackResultify(...args: any[]): any {
       fn({
         ...fnOptions,
         [resolve]: (...value: unknown[]) => _resolve(Ok(value)),
-        [reject]: (error: unknown) => _resolve(Err(code, message || `error occurred while calling '${fn.name || 'anonymous'}' function`, error)),
+        [reject]: (error: unknown) => _resolve(Err(
+          code,
+          message || (error instanceof Error ? error.message : `Error occurred while calling '${fn.name || 'anonymous'}' function.`),
+          error,
+        )),
       }, ...fnArgs)
     }
     catch (error) {
-      _resolve(Err(code, message || `error occurred while calling '${fn.name || 'anonymous'}' function`, error))
+      _resolve(Err(
+        code,
+        message || (error instanceof Error ? error.message : `Error occurred while calling '${fn.name || 'anonymous'}' function.`),
+        error,
+      ))
     }
   })
 }
